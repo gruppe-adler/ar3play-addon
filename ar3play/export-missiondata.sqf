@@ -1,4 +1,4 @@
-private "_getPlayerData";
+private "_getUnitData";
 
 _logscript = compile preprocessFileLineNumbers "\ar3play\vendor\sock-rpc\log.sqf";
 call _logscript;
@@ -6,9 +6,9 @@ call _logscript;
 _sockscript = compile preprocessFileLineNumbers "\ar3play\vendor\sock-rpc\sock.sqf";
 call _sockscript;
 
-_getPlayerData = compile preprocessFileLineNumbers "\ar3play\getPlayerData.sqf";
+_getUnitData = compile preprocessFileLineNumbers "\ar3play\getUnitData.sqf";
 
-diag_log "export-missiondatat.sqf: ok. start pinging sock_rpc...";
+diag_log "ar3play: loaded. start pinging sock_rpc...";
 
 [] spawn {
 	while {true} do {
@@ -31,20 +31,20 @@ if (isDedicated) then {
 
 	['setIsStreamable', [IS_STREAMABLE]] call sock_rpc;
 
-	[_getPlayerData] spawn {
-		private "_getPlayerData";
-		_getPlayerData = _this select 0;
+	[_getUnitData] spawn {
+		private "_getUnitData";
+		_getUnitData = _this select 0;
 
 		while {(count allUnits > 0) and (ENABLE_REPLAY)} do {
-			_playersArray = [];
+			_unitsDataArray = [];
 			{
-				if (side _x != sideLogic) then {
-					_playerArray = [_x] call _getPlayerData;
-					_playersArray = _playersArray + [_playerArray];
+				if ((side _x != sideLogic) && (_x isKindOf "AllVehicles")) then {
+					_unitsDataArray pushBack ([_x] call _getUnitData);
 				};
-			} forEach allUnits + allDead - vehicles - agents;
+			} forEach allUnits + allDead - agents;
 
-			['setAllPlayerData', [_playersArray]] call sock_rpc;
+
+			['setAllUnitData', [_unitsDataArray]] call sock_rpc;
 			sleep 1;
 		};
 	};

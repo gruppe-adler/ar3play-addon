@@ -8,4 +8,6 @@ if (isNil "IS_STREAMABLE") then {
 waitUntil {isDedicated || {not(isNull player)}};
 
 SYSTEM_LOG_LEVEL = 0;
+AR3PLAY_NEXTID = 1;
+
 execVM "\ar3play\export-missiondata.sqf";

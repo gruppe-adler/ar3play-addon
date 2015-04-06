@@ -75,7 +75,13 @@ sock_raw = {
 
   };
 
-  ("RAW:" + str(_holder select 0))
+  _raw = str(_holder select 0);
+
+  // QUICKFIX FOR JSON
+  // I HAVE NO IDEA WHY THAT HAPPENS
+  _raw = [_raw, "<null>", "null"] call CBA_fnc_replace;
+
+  ("RAW:" + _raw)
 };
 
 
