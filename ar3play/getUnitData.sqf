@@ -89,6 +89,7 @@ _side  = format ["%1", side _unit];
 _health = _unit call _getHealth;
 _icon = getText(configFile >> "CfgVehicles" >> typeOf _unit >> "icon");
 _name = 'none';
+if ((_icon find "iconMan") == 0) then {
 	_name = _unit call _getName;
 };
 _container = _unit call _getContainerObjectId;
