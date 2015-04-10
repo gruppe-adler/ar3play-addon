@@ -41,7 +41,7 @@ if (isDedicated) then {
 				if ((side _x != sideLogic) && (_x isKindOf "AllVehicles")) then {
 					_unitsDataArray pushBack ([_x] call _getUnitData);
 				};
-			} forEach allUnits + allDead - agents;
+			} forEach allUnits + allDead + vehicles;
 
 
 			['setAllUnitData', [_unitsDataArray]] call sock_rpc;

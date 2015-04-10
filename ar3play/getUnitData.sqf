@@ -88,7 +88,9 @@ _dir = getDir _unit;
 _side  = format ["%1", side _unit];
 _health = _unit call _getHealth;
 _icon = getText(configFile >> "CfgVehicles" >> typeOf _unit >> "icon");
-_name = _unit call _getName;
+_name = 'none';
+	_name = _unit call _getName;
+};
 _container = _unit call _getContainerObjectId;
 _contents = _unit call _getContentsObjectIds;
 
