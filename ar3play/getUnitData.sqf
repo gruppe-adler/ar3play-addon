@@ -60,7 +60,7 @@ _getName = {
 	private ['_name'];
 
 	_name = '';
-	if (alive _this) then {
+	if ((alive _this) && (_this isKindOf "Man")) then {
 		_name = name _this;
 	};
 
@@ -88,10 +88,7 @@ _dir = getDir _unit;
 _side  = format ["%1", side _unit];
 _health = _unit call _getHealth;
 _icon = getText(configFile >> "CfgVehicles" >> typeOf _unit >> "icon");
-_name = 'none';
-if ((_icon find "iconMan") == 0) then {
-	_name = _unit call _getName;
-};
+_name = _unit call _getName;
 _container = _unit call _getContainerObjectId;
 _contents = _unit call _getContentsObjectIds;
 
