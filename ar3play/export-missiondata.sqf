@@ -39,7 +39,10 @@ if (isDedicated) then {
 			_unitsDataArray = [];
 			{
 				if ((side _x != sideLogic) && (_x isKindOf "AllVehicles")) then {
-					_unitsDataArray pushBack ([_x] call _getUnitData);
+					_unitData = [_x] call _getUnitData;
+					if ((_unitData select 7) != "iconObject_1x1") then {
+						_unitsDataArray pushBack _unitData;
+					};
 				};
 			} forEach allUnits + allDead + vehicles;
 
