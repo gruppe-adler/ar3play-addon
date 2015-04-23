@@ -1,4 +1,5 @@
 private "_getUnitData";
+private "_arePlayersConnected";
 
 _logscript = compile preprocessFileLineNumbers "\ar3play\vendor\sock-rpc\log.sqf";
 call _logscript;
@@ -7,6 +8,17 @@ _sockscript = compile preprocessFileLineNumbers "\ar3play\vendor\sock-rpc\sock.s
 call _sockscript;
 
 _getUnitData = compile preprocessFileLineNumbers "\ar3play\getUnitData.sqf";
+
+_arePlayersConnected = {
+	private ["_result", "_now"];
+	_result = ({isPlayer _x} count playableUnits) > 0;
+	if (_result) then {
+		AR3PLAY_MOST_RECENT_PLAYER_DETECTED = time;
+	} else {
+		_result = AR3PLAY_MOST_RECENT_PLAYER_DETECTED > (time - AR3PLAY_TIMEOUT_PLAYERS);
+	};
+	 _result
+};
 
 diag_log "ar3play: loaded. start pinging sock_rpc...";
 
@@ -25,17 +37,20 @@ if (isDedicated) then {
 		['missionEnd', []] call sock_rpc;
 	}];
 
-	waitUntil { count allUnits > 0 };
+	waitUntil _arePlayersConnected;
 
 	['missionStart', [missionName, worldName]] call sock_rpc;
 
-	['setIsStreamable', [IS_STREAMABLE]] call sock_rpc;
+	['setIsStreamable', [AR3PLAY_IS_STREAMABLE]] call sock_rpc;
 
-	[_getUnitData] spawn {
+	[_getUnitData, _arePlayersConnected] spawn {
 		private "_getUnitData";
-		_getUnitData = _this select 0;
+		private "_arePlayersConnected";
 
-		while {(count allUnits > 0) and (ENABLE_REPLAY)} do {
+		_getUnitData = _this select 0;
+		_arePlayersConnected = _this select 1;
+
+		while {(call _arePlayersConnected) && (AR3PLAY_ENABLE_REPLAY)} do {
 			_unitsDataArray = [];
 			{
 				if ((side _x != sideLogic) && (_x isKindOf "AllVehicles")) then {
@@ -50,5 +65,6 @@ if (isDedicated) then {
 			['setAllUnitData', [_unitsDataArray]] call sock_rpc;
 			sleep 1;
 		};
+		['missionEnd', []] call sock_rpc;
 	};
 };

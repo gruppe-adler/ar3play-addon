@@ -105,4 +105,3 @@ _contents = _unit call _getContentsObjectIds;
 	_container,
 	_contents
 ]
-
