@@ -39,3 +39,30 @@ Set the `P:\@ar3play` folder as `Output Mod Folder` and the `P:\ar3play` folder 
 ## CLI
 
 Invoke `jenkins.bat` with a free drive as parameter, i.e. `jenkins.bat P:`
+
+# Usage
+
+These are the global config variables, can be set in mission `init.sqf`:
+
+##  AR3PLAY_ENABLE_REPLAY
+
+* boolean
+* default: true
+
+Whether replay data should be recorded at all
+
+## AR3PLAY_IS_STREAMABLE
+
+* boolean
+* default: false
+
+Whether ar3play-server should allow data from currently running missions to be fetched via REST
+
+## AR3PLAY_TIMEOUT_PLAYERS
+
+* number
+* default: 60
+
+Stop to collect replay data N seconds after the last player stopped playing.
+Hint: dead players waiting to respawn count as "disconnected", so increase to a bit more than respawn timeout if needed
+
