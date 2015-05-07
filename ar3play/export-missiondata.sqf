@@ -1,5 +1,9 @@
 private "_getUnitData";
 private "_arePlayersConnected";
+private "_sendDataLoop";
+private "_echoLoop";
+
+_unitDirs = [];
 
 _logscript = compile preprocessFileLineNumbers "\ar3play\vendor\sock-rpc\log.sqf";
 call _logscript;
@@ -20,51 +24,72 @@ _arePlayersConnected = {
 	 _result
 };
 
-diag_log "ar3play: loaded. start pinging sock_rpc...";
+_missionStarted = {
 
-[] spawn {
-	while {true} do {
-		['echo', ['keep-alive']] call sock_rpc;
-		sleep 20;
-	};
+	_result = false;
+	{
+	 	if (isPlayer _x && alive _x) then {
+	 		_newDir = getDir _x;
+	 		if ((count _unitDirs) <= _forEachIndex) then {
+	 			_unitDirs pushBack -1;
+	 		};
+	 		_oldDir = _unitDirs select _forEachIndex;
+	 		if (_oldDir == -1) then {
+	 			_unitDirs set [_forEachIndex, _newDir];
+	 		} else {
+	 			if (_newDir != _oldDir) then {
+					_result = true;
+	 			};
+	 		};
+	 	};
+	} forEach playableUnits;
+
+	_result
 };
 
-['echo', ['keep-alive']] call sock_rpc;
+_sendDataLoop = {
+	private "_getUnitData";
+	private "_arePlayersConnected";
+
+	_getUnitData = _this select 0;
+	_arePlayersConnected = _this select 1;
+
+	while {(call _arePlayersConnected) && (AR3PLAY_ENABLE_REPLAY)} do {
+		_unitsDataArray = [];
+		{
+			if ((side _x != sideLogic) && (_x isKindOf "AllVehicles")) then {
+				_unitData = [_x] call _getUnitData;
+				if ((_unitData select 7) != "iconObject_1x1") then {
+					_unitsDataArray pushBack _unitData;
+				};
+			};
+		} forEach allUnits + allDead + vehicles;
+
+
+		['setAllUnitData', [_unitsDataArray]] call sock_rpc;
+		sleep 1;
+	};
+	['missionEnd', ['replay disabled or players left']] call sock_rpc;
+};
+
+//--------------------------------------------------------------
+
+diag_log "ar3play: loaded. waiting for mission start...";
 
 if (isDedicated) then {
 
 	addMissionEventHandler ["Ended", {
-		['missionEnd', []] call sock_rpc;
+		diag_log "ar3play: mission ended. stopping updates, sending endMission.";
+		AR3PLAY_ENABLE_REPLAY = false;
+		sleep 2;
+		['missionEnd', ['mission ended event']] call sock_rpc;
 	}];
 
-	waitUntil _arePlayersConnected;
+	waitUntil _missionStarted;
+
+	diag_log "ar3play: first player connected and alive. starting to send updates...";
 
 	['missionStart', [missionName, worldName]] call sock_rpc;
-
 	['setIsStreamable', [AR3PLAY_IS_STREAMABLE]] call sock_rpc;
-
-	[_getUnitData, _arePlayersConnected] spawn {
-		private "_getUnitData";
-		private "_arePlayersConnected";
-
-		_getUnitData = _this select 0;
-		_arePlayersConnected = _this select 1;
-
-		while {(call _arePlayersConnected) && (AR3PLAY_ENABLE_REPLAY)} do {
-			_unitsDataArray = [];
-			{
-				if ((side _x != sideLogic) && (_x isKindOf "AllVehicles")) then {
-					_unitData = [_x] call _getUnitData;
-					if ((_unitData select 7) != "iconObject_1x1") then {
-						_unitsDataArray pushBack _unitData;
-					};
-				};
-			} forEach allUnits + allDead + vehicles;
-
-
-			['setAllUnitData', [_unitsDataArray]] call sock_rpc;
-			sleep 1;
-		};
-		['missionEnd', []] call sock_rpc;
-	};
+	[_getUnitData, _arePlayersConnected] spawn _sendDataLoop;
 };
