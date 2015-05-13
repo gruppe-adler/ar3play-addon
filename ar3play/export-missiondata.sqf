@@ -1,9 +1,15 @@
+#include "init.hpp"
+
 private "_getUnitData";
 private "_arePlayersConnected";
 private "_sendDataLoop";
 private "_echoLoop";
 
 _unitDirs = [];
+{
+	_unitDirs pushBack -1;
+} forEach playableUnits;
+
 
 _logscript = compile preprocessFileLineNumbers "\ar3play\vendor\sock-rpc\log.sqf";
 call _logscript;
@@ -29,15 +35,14 @@ _missionStarted = {
 	_result = false;
 	{
 	 	if (isPlayer _x && alive _x) then {
-	 		_newDir = getDir _x;
-	 		if ((count _unitDirs) <= _forEachIndex) then {
-	 			_unitDirs pushBack -1;
-	 		};
+	 		_newDir = floor getDir _x; // DO AVOID FLOATS if we want to compare numbers afterwards
 	 		_oldDir = _unitDirs select _forEachIndex;
+
 	 		if (_oldDir == -1) then {
 	 			_unitDirs set [_forEachIndex, _newDir];
 	 		} else {
 	 			if (_newDir != _oldDir) then {
+	 				TRACE_3("player-controlled unit turned (name, olddir, newdir)", name _x, _oldDir, _newDir);
 					_result = true;
 	 			};
 	 		};
@@ -74,12 +79,12 @@ _sendDataLoop = {
 
 //--------------------------------------------------------------
 
-diag_log "ar3play: loaded. waiting for mission start...";
+LOG("ar3play: loaded. waiting for mission start...");
 
 if (isDedicated) then {
 
 	addMissionEventHandler ["Ended", {
-		diag_log "ar3play: mission ended. stopping updates, sending endMission.";
+		LOG("ar3play: mission ended. stopping updates, sending endMission.");
 		AR3PLAY_ENABLE_REPLAY = false;
 		sleep 2;
 		['missionEnd', ['mission ended event']] call sock_rpc;
@@ -87,7 +92,7 @@ if (isDedicated) then {
 
 	waitUntil _missionStarted;
 
-	diag_log "ar3play: first player connected and alive. starting to send updates...";
+	LOG("ar3play: first player connected and alive. starting to send updates...");
 
 	['missionStart', [missionName, worldName]] call sock_rpc;
 	['setIsStreamable', [AR3PLAY_IS_STREAMABLE]] call sock_rpc;

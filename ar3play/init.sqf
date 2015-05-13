@@ -1,3 +1,5 @@
+#include "init.hpp"
+
 if (isNil "AR3PLAY_ENABLE_REPLAY") then {
 	AR3PLAY_ENABLE_REPLAY = true;
 };
