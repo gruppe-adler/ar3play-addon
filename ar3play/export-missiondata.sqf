@@ -64,7 +64,8 @@ _sendDataLoop = {
 		{
 			if ((side _x != sideLogic) && (_x isKindOf "AllVehicles")) then {
 				_unitData = [_x] call _getUnitData;
-				if ((_unitData select 7) != "iconObject_1x1") then {
+				_icon = _unitData select 7;
+				if ((_icon != "iconObject_1x1") && (_icon != "iconObject_circle")) then {
 					_unitsDataArray pushBack _unitData;
 				};
 			};
