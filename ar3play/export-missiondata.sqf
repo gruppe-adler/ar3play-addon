@@ -5,12 +5,6 @@ private "_arePlayersConnected";
 private "_sendDataLoop";
 private "_echoLoop";
 
-_unitDirs = [];
-{
-	_unitDirs pushBack -1;
-} forEach playableUnits;
-
-
 _logscript = compile preprocessFileLineNumbers "\ar3play\vendor\sock-rpc\log.sqf";
 call _logscript;
 
@@ -36,10 +30,10 @@ _missionStarted = {
 	{
 	 	if (isPlayer _x && alive _x) then {
 	 		_newDir = floor getDir _x; // DO AVOID FLOATS if we want to compare numbers afterwards
-	 		_oldDir = _unitDirs select _forEachIndex;
+	 		_oldDir = _x getVariable ['ar3play_direction', -1];
 
 	 		if (_oldDir == -1) then {
-	 			_unitDirs set [_forEachIndex, _newDir];
+	 			_x setVariable ['ar3play_direction', _newDir];
 	 		} else {
 	 			if (_newDir != _oldDir) then {
 	 				TRACE_3("player-controlled unit turned (name, olddir, newdir)", name _x, _oldDir, _newDir);
