@@ -24,28 +24,6 @@ _arePlayersConnected = {
 	 _result
 };
 
-_missionStarted = {
-
-	_result = false;
-	{
-	 	if (isPlayer _x && alive _x) then {
-	 		_newDir = floor getDir _x; // DO AVOID FLOATS if we want to compare numbers afterwards
-	 		_oldDir = _x getVariable ['ar3play_direction', -1];
-
-	 		if (_oldDir == -1) then {
-	 			_x setVariable ['ar3play_direction', _newDir];
-	 		} else {
-	 			if (_newDir != _oldDir) then {
-	 				TRACE_3("player-controlled unit turned (name, olddir, newdir)", name _x, _oldDir, _newDir);
-					_result = true;
-	 			};
-	 		};
-	 	};
-	} forEach playableUnits;
-
-	_result
-};
-
 _sendDataLoop = {
 	private "_getUnitData";
 	private "_arePlayersConnected";
@@ -84,9 +62,9 @@ if (isDedicated) then {
 		['missionEnd', ['mission ended event']] call sock_rpc;
 	}];
 
-	waitUntil _missionStarted;
+	waitUntil {time > 0};
 
-	LOG("ar3play: first player connected and alive. starting to send updates...");
+	LOG("ar3play: mission has been started. starting to send updates...");
 
 	['missionStart', [missionName, worldName]] call sock_rpc;
 	['setIsStreamable', [AR3PLAY_IS_STREAMABLE]] call sock_rpc;
